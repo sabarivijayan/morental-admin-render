@@ -11,7 +11,7 @@ import {
   GetManufacturersResponse,
 } from "@/interfaces/manufacturer";
 import Swal from "sweetalert2";
-import { v4 as uuidv4 } from "uuid";
+import { v4 as uuidv4 } from "uuid"
 import styles from "./add-cars.module.css";
 import { useRouter } from "next/navigation";
 import { UploadOutlined } from "@ant-design/icons";

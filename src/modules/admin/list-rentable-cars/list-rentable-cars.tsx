@@ -29,6 +29,7 @@ import {
 import styles from "./list-rentable-cars.module.css";
 import { searchCars } from "@/lib/typesense";
 import { useAddCarToTypesense } from "@/services/rentable-cars-typesense";
+import type { ColumnType } from "antd/es/table";
 
 const ListRentableCars: React.FC = () => {
   const [selectedRentableCar, setSelectedRentableCar] =
@@ -152,13 +153,14 @@ const ListRentableCars: React.FC = () => {
     }
   };
 
-  const columns = [
+  // Columns with updated type
+  const columns: ColumnType<RentableCarInput>[] = [
     {
       title: "Image",
       dataIndex: ["car", "primaryImageUrl"],
       key: "primaryImageUrl",
-      render: (text: any, record: RentableCarInput) => (
-        <Image width={100} src={text} alt="Car Image" />
+      render: (_: any, record: RentableCarInput) => (
+        <Image width={100} src={record.car.primaryImageUrl} alt="Car Image" />
       ),
     },
     {
@@ -181,25 +183,26 @@ const ListRentableCars: React.FC = () => {
       dataIndex: "pricePerDay",
       key: "pricePerDay",
       render: (price: number) => `₹${price.toFixed(2)}`,
-      sorter: (a: any, b: any) => a.pricePerDay - b.pricePerDay,
+      sorter: (a: RentableCarInput, b: RentableCarInput) =>
+        a.pricePerDay - b.pricePerDay,
     },
     {
       title: "Actions",
       key: "actions",
-      render: (text: any, record: RentableCarInput) => {
+      render: (_: any, record: RentableCarInput) => {
         const menuItems = [
           {
             key: "edit",
             label: "Edit Car",
             icon: <EditOutlined />,
-            onClick: () => handleEditRentableCar(record), // Edit action
+            onClick: () => handleEditRentableCar(record),
           },
           {
             key: "delete",
             label: "Delete Car",
             icon: <DeleteOutlined />,
             danger: true,
-            onClick: () => handleDelete(record.id), // Delete action
+            onClick: () => handleDelete(record.id),
           },
         ];
 
@@ -227,7 +230,7 @@ const ListRentableCars: React.FC = () => {
           <Input
             placeholder="Search cars..."
             value={searchQuery}
-            onChange={(e) => handleSearch(e.target.value)} // Trigger search on input change
+            onChange={(e) => handleSearch(e.target.value)}
             prefix={<SearchOutlined />}
             style={{ width: "100%" }}
           />
@@ -237,8 +240,8 @@ const ListRentableCars: React.FC = () => {
             placeholder="Min Price"
             type="number"
             value={minPrice ?? ""}
-            onChange={(e) => setMinPrice(Number(e.target.value))} // Update minimum price
-            onBlur={() => handlePriceFilter(minPrice, maxPrice)} // Apply price filter on blur
+            onChange={(e) => setMinPrice(Number(e.target.value))}
+            onBlur={() => handlePriceFilter(minPrice, maxPrice)}
           />
         </Col>
         <Col span={4}>
@@ -246,8 +249,8 @@ const ListRentableCars: React.FC = () => {
             placeholder="Max Price"
             type="number"
             value={maxPrice ?? ""}
-            onChange={(e) => setMaxPrice(Number(e.target.value))} // Update maximum price
-            onBlur={() => handlePriceFilter(minPrice, maxPrice)} // Apply price filter on blur
+            onChange={(e) => setMaxPrice(Number(e.target.value))}
+            onBlur={() => handlePriceFilter(minPrice, maxPrice)}
           />
         </Col>
       </Row>
@@ -256,7 +259,7 @@ const ListRentableCars: React.FC = () => {
         columns={columns}
         dataSource={
           searchResults.length > 0 ? searchResults : data?.getRentableCars
-        } // Show search results or all cars
+        }
         rowKey="id"
         pagination={{ pageSize: 10 }}
       />
@@ -264,9 +267,9 @@ const ListRentableCars: React.FC = () => {
       {/* Rentable Car Update Modal */}
       <Modal
         title={`Edit ${selectedRentableCar?.car.name ?? ""}`}
-        open={Boolean(selectedRentableCar)} // Show modal if a car is selected for editing
-        onCancel={() => setSelectedRentableCar(null)} // Close modal
-        onOk={handleUpdateRentableCar} // Handle update on OK
+        open={Boolean(selectedRentableCar)}
+        onCancel={() => setSelectedRentableCar(null)}
+        onOk={handleUpdateRentableCar}
         centered
       >
         <div className={styles.modalBody}>
@@ -278,20 +281,16 @@ const ListRentableCars: React.FC = () => {
               <Select
                 id="quantity"
                 value={availableQuantity}
-                onChange={setAvailableQuantity} // Update available quantity
+                onChange={(value) => setAvailableQuantity(value)}
                 style={{ width: "100%" }}
-                placeholder="Select quantity"
               >
-                {Array.from({
-                  length: selectedRentableCar?.car.quantity ?? 0,
-                } as { length: number }).map((_, index) => (
-                  <Select.Option key={index + 1} value={index + 1}>
-                    {index + 1}
+                {[...Array(10).keys()].map((num) => (
+                  <Select.Option key={num + 1} value={num + 1}>
+                    {num + 1}
                   </Select.Option>
                 ))}
               </Select>
             </div>
-
             <div>
               <label htmlFor="price" style={{ fontWeight: "600" }}>
                 Price Per Day
@@ -300,8 +299,7 @@ const ListRentableCars: React.FC = () => {
                 id="price"
                 type="number"
                 value={pricePerDay ?? ""}
-                onChange={(e) => setPricePerDay(Number(e.target.value))} // Update price per day
-                placeholder="Enter price per day"
+                onChange={(e) => setPricePerDay(Number(e.target.value))}
               />
             </div>
           </Space>

@@ -9,6 +9,19 @@ import { BOOKING_DELIVERY } from "@/graphql/mutations/bookings";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
+interface Booking {
+  rentable: {
+    car: {
+      name: string;
+      primaryImageUrl?: string;
+    };
+  };
+  pickUpDate: string;
+  dropOffDate: string;
+  totalPrice: number;
+  status: string;
+}
+
 const BookingsList: React.FC = () => {
   const token = Cookies.get("adminToken");
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -112,7 +125,7 @@ const BookingsList: React.FC = () => {
     // Auto table generation
     autoTable(doc, {
       head: [['Car Name', 'Pickup Date', 'Dropoff Date', 'Total Price', 'Status']],
-      body: bookings.map(booking => [
+      body: bookings.map((booking: Booking) => [
         booking.rentable?.car?.name || 'N/A',
         new Date(booking.pickUpDate).toLocaleDateString(),
         new Date(booking.dropOffDate).toLocaleDateString(),

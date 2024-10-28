@@ -1,0 +1,39 @@
+.bookingList {
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.tabs {
+  display: flex;
+  gap: 10px;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+.table {
+  width: 100%;
+}
+
+.table th, .table td {
+  text-align: center;
+}
+
+.table .ant-table-tbody > tr > td {
+  vertical-align: middle;
+}
+
+.table .ant-tag {
+  margin: 0;
+}

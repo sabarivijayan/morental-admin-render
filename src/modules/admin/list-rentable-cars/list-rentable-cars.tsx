@@ -1,24 +1,46 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@apollo/client";
-import { Button, Image, Modal, Input, Table, Dropdown, Select, Row, Col, Space } from "antd";
+import {
+  Button,
+  Image,
+  Modal,
+  Input,
+  Table,
+  Dropdown,
+  Select,
+  Row,
+  Col,
+  Space,
+} from "antd";
 import Swal from "sweetalert2";
-import { DELETE_RENTABLE_CAR, UPDATE_RENTABLE_CAR } from "@/graphql/mutations/rentable-cars";
+import {
+  DELETE_RENTABLE_CAR,
+  UPDATE_RENTABLE_CAR,
+} from "@/graphql/mutations/rentable-cars";
 import { GET_RENTABLE_CARS } from "@/graphql/queries/rentable-cars";
 import { RentableCarInput } from "@/interfaces/rentable-car";
-import { DownOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from "@ant-design/icons";
+import {
+  DownOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  SearchOutlined,
+} from "@ant-design/icons";
 import styles from "./list-rentable-cars.module.css";
 import { searchCars } from "@/lib/typesense";
 import { useAddCarToTypesense } from "@/services/rentable-cars-typesense";
 
 const ListRentableCars: React.FC = () => {
-  const [selectedRentableCar, setSelectedRentableCar] = useState<RentableCarInput | null>(null);
+  const [selectedRentableCar, setSelectedRentableCar] =
+    useState<RentableCarInput | null>(null);
   const [pricePerDay, setPricePerDay] = useState<number | null>(null);
-  const [availableQuantity, setAvailableQuantity] = useState<number | null>(null);
+  const [availableQuantity, setAvailableQuantity] = useState<number | null>(
+    null
+  );
 
   // State for Price Filter
-  const [minPrice, setMinPrice] = useState<number | null>(null);
-  const [maxPrice, setMaxPrice] = useState<number | null>(null);
+  const [minPrice, setMinPrice] = useState<number | undefined>(undefined);
+  const [maxPrice, setMaxPrice] = useState<number | undefined>(undefined);
 
   // State for search
   const [searchQuery, setSearchQuery] = useState("");
@@ -63,7 +85,15 @@ const ListRentableCars: React.FC = () => {
     setIsSearching(true);
 
     try {
-      const results = await searchCars(searchQuery, undefined, undefined, undefined, undefined, minPrice, maxPrice); // Filter based on price
+      const results = await searchCars(
+        searchQuery,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        minPrice,
+        maxPrice
+      ); // Filter based on price
       setSearchResults(results);
     } catch (error) {
       Swal.fire("Error!", "Failed to filter cars by price", "error");
@@ -114,7 +144,11 @@ const ListRentableCars: React.FC = () => {
         },
       });
     } else {
-      Swal.fire("Error!", "Please provide both price per day and available quantity.", "error");
+      Swal.fire(
+        "Error!",
+        "Please provide both price per day and available quantity.",
+        "error"
+      );
     }
   };
 
@@ -123,7 +157,9 @@ const ListRentableCars: React.FC = () => {
       title: "Image",
       dataIndex: ["car", "primaryImageUrl"],
       key: "primaryImageUrl",
-      render: (text: string) => <Image width={100} src={text} alt="Car Image" />,
+      render: (text: any, record: RentableCarInput) => (
+        <Image width={100} src={text} alt="Car Image" />
+      ),
     },
     {
       title: "Name",
@@ -218,7 +254,9 @@ const ListRentableCars: React.FC = () => {
 
       <Table
         columns={columns}
-        dataSource={searchResults.length > 0 ? searchResults : data?.getRentableCars} // Show search results or all cars
+        dataSource={
+          searchResults.length > 0 ? searchResults : data?.getRentableCars
+        } // Show search results or all cars
         rowKey="id"
         pagination={{ pageSize: 10 }}
       />
@@ -234,7 +272,9 @@ const ListRentableCars: React.FC = () => {
         <div className={styles.modalBody}>
           <Space direction="vertical" size="large">
             <div>
-              <label htmlFor="quantity" style={{ fontWeight: "600" }}>Available Quantity</label>
+              <label htmlFor="quantity" style={{ fontWeight: "600" }}>
+                Available Quantity
+              </label>
               <Select
                 id="quantity"
                 value={availableQuantity}
@@ -242,7 +282,9 @@ const ListRentableCars: React.FC = () => {
                 style={{ width: "100%" }}
                 placeholder="Select quantity"
               >
-                {Array.from({ length: selectedRentableCar?.car.quantity ?? 0 }).map((_, index) => (
+                {Array.from({
+                  length: selectedRentableCar?.car.quantity ?? 0,
+                } as { length: number }).map((_, index) => (
                   <Select.Option key={index + 1} value={index + 1}>
                     {index + 1}
                   </Select.Option>
@@ -251,7 +293,9 @@ const ListRentableCars: React.FC = () => {
             </div>
 
             <div>
-              <label htmlFor="price" style={{ fontWeight: "600" }}>Price Per Day</label>
+              <label htmlFor="price" style={{ fontWeight: "600" }}>
+                Price Per Day
+              </label>
               <Input
                 id="price"
                 type="number"

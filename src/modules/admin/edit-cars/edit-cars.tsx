@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import { useQuery, useMutation } from "@apollo/client";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Form, Input, Select, Button, Upload, message } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import Swal from "sweetalert2";
@@ -12,11 +12,21 @@ import styles from "./edit-cars.module.css";
 import { GET_CAR_BY_ID } from "@/graphql/queries/cars";
 import { UPDATE_CAR } from "@/graphql/mutations/cars";
 
-const EditCarPage: React.FC = () => {
-  const router = useRouter();
+// Component to isolate useSearchParams for client-side only
+const CarIdParams = ({ onIdChange }: { onIdChange: (id: string | null) => void }) => {
   const searchParams = useSearchParams();
   const id = searchParams.get("car");
 
+  useEffect(() => {
+    onIdChange(id);
+  }, [id, onIdChange]);
+
+  return null; // This component only updates the parent component with the search param
+};
+
+const EditCarPage: React.FC = () => {
+  const router = useRouter();
+  const [id, setId] = useState<string | null>(null);
   const [form] = Form.useForm();
   const [fileList, setFileList] = useState<any[]>([]); // Primary image
   const [otherFiles, setOtherFiles] = useState<any[]>([]); // Secondary images
@@ -65,17 +75,14 @@ const EditCarPage: React.FC = () => {
   // Handle form submission
   const handleCompletion = (values: any) => {
     const primaryImage = fileList.length > 0 && fileList[0].originFileObj ? fileList[0].originFileObj : null;
-  
     const secondaryImages = otherFiles.map(file => file.originFileObj || null).filter(Boolean);
-  
-    // Prepare the input data with optional images
+
     const updatedValues = {
       ...values,
-      primaryImage, // Send null if no new image is uploaded
-      secondaryImages: secondaryImages.length > 0 ? secondaryImages : null, // Send null if no new images
+      primaryImage,
+      secondaryImages: secondaryImages.length > 0 ? secondaryImages : null,
     };
-  
-    // Call mutation to update the car
+
     updateCar({
       variables: {
         id,
@@ -83,25 +90,21 @@ const EditCarPage: React.FC = () => {
       },
     });
   };
-  
 
   // Handle primary image upload (limit to 1)
-  const handlePrimaryFileChange = (info: any) => {
-    const newFileList = info.fileList.slice(-1); // Restrict to 1 file
-    setFileList(newFileList);
-  };
+  const handlePrimaryFileChange = (info: any) => setFileList(info.fileList.slice(-1));
 
   // Handle multiple secondary image uploads (limit to 3)
-  const handleOtherFileChange = (info: any) => {
-    const newFileList = info.fileList.slice(0, 3); // Restrict to 3 files
-    setOtherFiles(newFileList);
-  };
+  const handleOtherFileChange = (info: any) => setOtherFiles(info.fileList.slice(0, 3));
 
   if (loading) return <p>Loading car data...</p>;
   if (error) return <p>Error loading car data: {error.message}</p>;
 
   return (
     <div className={styles.mainDiv}>
+      <Suspense fallback={<p>Loading...</p>}>
+        <CarIdParams onIdChange={setId} />
+      </Suspense>
       <h1>Edit Car</h1>
       <Form
         form={form}
@@ -186,7 +189,7 @@ const EditCarPage: React.FC = () => {
             listType="picture"
             fileList={fileList}
             onChange={handlePrimaryFileChange}
-            beforeUpload={() => false} // Prevent automatic upload
+            beforeUpload={() => false}
             maxCount={1}
           >
             <Button icon={<UploadOutlined />}>Upload Primary Image</Button>
@@ -198,7 +201,7 @@ const EditCarPage: React.FC = () => {
             listType="picture"
             fileList={otherFiles}
             onChange={handleOtherFileChange}
-            beforeUpload={() => false} // Prevent automatic upload
+            beforeUpload={() => false}
             multiple
           >
             <Button icon={<UploadOutlined />}>Upload Secondary Images</Button>
